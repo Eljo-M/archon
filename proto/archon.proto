@@ -1,0 +1,102 @@
+syntax = "proto3";
+package archon.v1;
+
+// Original field numbers are retained. Additive fields make execution reproducible.
+service ClusterCoordinator {
+  rpc RegisterNode (NodeInfo) returns (RegisterResponse);
+  rpc SendHeartbeat (HeartbeatRequest) returns (HeartbeatResponse);
+}
+message NodeInfo {
+  string node_id = 1;
+  string ip_address = 2;
+  int32 port = 3;
+  int32 gpu_vram_mb = 4;
+  bool has_npu = 5;
+  int32 cpu_cores = 6;
+}
+message RegisterResponse {
+  bool accepted = 1;
+  string cluster_leader_id = 2;
+  int64 term = 3; // Single coordinator epoch; no consensus/failover protocol yet.
+}
+message HeartbeatRequest {
+  string node_id = 1;
+  float gpu_utilization = 2; // Fraction in [0,1].
+  float memory_usage_mb = 3;
+  int32 active_tasks = 4;
+}
+message HeartbeatResponse { bool acknowledged = 1; }
+
+message RepositorySpec {
+  string url = 1;
+  string commit_sha = 2;
+  string sandbox_image = 3;
+  repeated string test_argv = 4;
+  int32 timeout_seconds = 5;
+}
+enum ExecutionStatus {
+  EXECUTION_STATUS_UNSPECIFIED = 0;
+  PASSED = 1;
+  TEST_FAILED = 2;
+  INVALID_PATCH = 3;
+  TIMEOUT = 4;
+  RESOURCE_LIMIT = 5;
+  INFRA_ERROR = 6;
+}
+service SandboxService {
+  rpc ExecuteTask (ExecutionRequest) returns (ExecutionResponse);
+}
+message ExecutionRequest {
+  string execution_id = 1;
+  string repository_url = 2 [deprecated = true];
+  string git_patch = 3;
+  string test_command = 4 [deprecated = true];
+  int32 timeout_seconds = 5 [deprecated = true];
+  RepositorySpec repository = 6; // Required by v0.1 server; argv replaces shell command.
+}
+message ExecutionResponse {
+  string execution_id = 1;
+  bool passed = 2;
+  int32 exit_code = 3;
+  string stdout = 4;
+  string stderr = 5;
+  int64 execution_time_ms = 6;
+  ExecutionStatus status = 7;
+  bool output_truncated = 8;
+  string image_id = 9;
+  bool has_exit_code = 10;
+}
+
+service AgentOrchestratorService {
+  rpc DispatchIssue (IssueRequest) returns (stream AgentProgressUpdate);
+  rpc SubmitIssue (IssueRequest) returns (SubmitResponse);
+  rpc WatchRun (WatchRequest) returns (stream AgentProgressUpdate);
+  rpc CancelRun (CancelRequest) returns (CancelResponse);
+}
+message IssueRequest {
+  string issue_id = 1;
+  string repository_name = 2 [deprecated = true];
+  string issue_description = 3;
+  int32 max_repair_iterations = 4; // Required, [1,10]; zero is invalid.
+  RepositorySpec repository = 5;
+  string idempotency_key = 6;
+}
+message SubmitResponse { string run_id = 1; bool created = 2; }
+message WatchRequest { string run_id = 1; int64 after_sequence = 2; }
+message CancelRequest { string run_id = 1; }
+message CancelResponse { bool accepted = 1; }
+message AgentProgressUpdate {
+  string stage = 1;
+  string current_agent = 2;
+  string thought_trace = 3 [deprecated = true]; // Always empty; no private reasoning trace.
+  string active_diff = 4;
+  bool is_completed = 5;
+  bool success = 6;
+  string run_id = 7;
+  int64 sequence = 8;
+  string summary = 9;
+  int32 attempt = 10;
+  string status = 11;
+  string timestamp = 12;
+  string evidence_json = 13;
+}

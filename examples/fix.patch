@@ -1,0 +1,7 @@
+diff --git a/arithmetic.py b/arithmetic.py
+--- a/arithmetic.py
++++ b/arithmetic.py
+@@ -1,2 +1,2 @@
+ def add(left, right):
+-    return left - right
++    return left + right

@@ -1,0 +1,47 @@
+name: Archon checks
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  python:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -c constraints-dev.txt -e ".[dev]"
+      - run: python scripts/generate_proto.py
+      - run: python -m ruff check .
+      - run: python -m pytest -q
+      - run: python -m archon demo
+  training-reference:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -c constraints-dev.txt -e ".[dev]"
+      - run: python -m pip install "torch>=2.6,<3" --index-url https://download.pytorch.org/whl/cpu
+      - run: python -m pytest tests/test_grpo.py -q
+  cpp-build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y libgrpc++-dev protobuf-compiler-grpc libprotobuf-dev cmake ninja-build
+      - run: cmake -S . -B build -G Ninja -DARCHON_SANITIZERS=ON
+      - run: cmake --build build --parallel 2
+      - name: Exercise sanitized coordinator registration and heartbeat
+        run: |
+          python3 -m pip install --break-system-packages grpcio grpcio-tools
+          python3 scripts/generate_proto.py
+          ARCHON_API_TOKEN=ci-token ./build/archon-coordinator &
+          coordinator_pid=$!
+          trap 'kill "$coordinator_pid" 2>/dev/null || true' EXIT
+          PYTHONPATH=src ARCHON_API_TOKEN=ci-token python3 scripts/check_cpp_coordinator.py

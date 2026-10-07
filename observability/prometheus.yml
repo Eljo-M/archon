@@ -1,0 +1,8 @@
+global:
+  scrape_interval: 15s
+scrape_configs:
+  - job_name: archon-gateway
+    static_configs:
+      - targets: ["host.docker.internal:9100"]
+# The development server binds metrics to loopback. For host-to-container scraping,
+# use a local forwarding rule or change the binding on a controlled development network.
