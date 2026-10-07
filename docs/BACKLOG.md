@@ -8,7 +8,7 @@ Checkboxes indicate implemented and locally verified work only. A foundation doe
 - [x] F-02 — Implement a persistent development run/event store and bounded repair state machine.
 - [x] F-03 — Demonstrate the supplied fixture with failing original tests and passing patched tests; label scripted inference.
 - [x] F-04 — Verify async gRPC submission, authentication, progress replay, disconnected watchers and cancellation.
-- [ ] F-05 — Observe GitHub CI pass on Linux and Windows, then pin the validated environment.
+- [x] F-05 — Observe GitHub CI pass on Linux and Windows, then pin the validated environment.
 
 ## Execution and inference
 
@@ -31,7 +31,8 @@ Checkboxes indicate implemented and locally verified work only. A foundation doe
 
 - [ ] D-01 — Wire PostgreSQL run authority, transactional outbox, Redis Streams consumers and renewable fenced leases.
 - [ ] D-02 — Prove worker crash recovery, duplicate delivery, outbox replay and stale-result rejection.
-- [ ] D-03 — Build and exercise the C++ callback coordinator; integrate capabilities and worker heartbeat clients.
+- [x] D-03 — Build and exercise the C++ callback coordinator under sanitizer instrumentation in Linux CI.
+- [ ] D-03b — Integrate coordinator capabilities and worker heartbeat clients into distributed scheduling.
 - [ ] D-04 — Define leadership/failover requirements and authenticated worker identity.
 - [ ] D-05 — Add transport TLS client tooling, credential rotation and deployment-specific authorization.
 
@@ -40,7 +41,8 @@ Checkboxes indicate implemented and locally verified work only. A foundation doe
 - [ ] E-01 — Integrate official SWE-bench Lite harness and trace-to-prediction conversion; pin dataset/configuration.
 - [ ] E-02 — Implement a separate isolated HumanEval evaluator and report format.
 - [ ] E-03 — Publish a measured baseline with infrastructure/agent failure attribution and a declared split.
-- [ ] T-01 — Validate CPU GRPO reference gradients and masking, then repeat on GPU.
+- [x] T-01 — Validate CPU GRPO reference gradients, clipping branches and completion masking.
+- [ ] T-01b — Repeat reference-objective validation on the supplied GPU before custom-kernel work.
 - [ ] T-02 — Review verified-example exporter and dataset provenance; add split/leakage checks.
 - [ ] T-03 — Implement and validate SFT/LoRA training plus checkpoint/evaluation flow.
 - [ ] T-04 — Implement actual GRPO rollout grouping, executable rewards and training loop.
@@ -55,4 +57,4 @@ Checkboxes indicate implemented and locally verified work only. A foundation doe
 - [ ] O-04 — Rehearse deployment, upgrade, backup/recovery and installation documentation.
 - [ ] O-05 — Complete release acceptance in ROADMAP.md and publish a versioned release candidate.
 
-Next useful work: F-05 and S-01. When Docker is unavailable, proceed with C-02 and model-adapter/trace tests rather than waiting.
+Next useful work: S-01. Use a Linux Docker host or a dedicated GitHub CI integration job. When Docker is unavailable, proceed with C-02 and model-adapter/trace tests rather than waiting.
