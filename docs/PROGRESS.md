@@ -2,7 +2,7 @@
 
 ## October 6, 2026 — Project bootstrap
 
-Established the public repository Eljo-M/archon and an 8–12 week implementation plan. A daily continuation is scheduled for 9 AM America/New_York in the original project chat.
+Established the public repository Eljo-M/archon and an 8–12 week implementation plan. A daily continuation is scheduled in the original project chat; the user subsequently moved it to randomized nighttime starts in America/New_York.
 
 Implemented the compatible extended service contract; persistent single-process development traces; bounded Architect/Coder/Reviewer flow; Python Tree-sitter indexing; patch containment and protected-test checks; Docker Engine execution adapter; authenticated async development gateway; Redis Streams transport and PostgreSQL schema/migration foundations; C++20 callback coordinator source; reference GRPO loss; and verified-example export foundation. Added local infrastructure and observability configuration.
 
@@ -19,3 +19,5 @@ The second run passed Windows tests and the demonstration but exposed a Linux ti
 Final verification: [GitHub Actions run 37553791891](https://github.com/Eljo-M/archon/actions/runs/37553791891) passed all four jobs: Linux Python, Windows Python, CPU training reference, and C++ sanitizer build/RPC smoke. Verified code commit: `0e20f555e12cc5b135f56f7b0fb26c0dc20d1a05`. Local dependency consistency also passed `pip check`; the working tree was synchronized with the published code. The final documentation-only commit records this result without repeating the already-passed source checks.
 
 Next increment: real Docker execution integration (S-01), using a Linux host or a dedicated CI job. LSP client work (C-02) can proceed independently of GPU/model access.
+
+Scheduling update: the active heartbeat now checks hourly from 8:17 PM through 2:17 AM. A persistent local gate selects a random slot each night, weighted toward evening hours, and atomically permits at most one development session. Overnight checks belong to the preceding evening. Four local scheduling checks passed, covering slot variation/window bounds, waiting and duplicate suppression, midnight attribution, catch-up and daylight-saving/timezone conversion. Today's completed work is marked so the automation begins on a subsequent night. The scheduling helper is local automation support outside the product repository.
