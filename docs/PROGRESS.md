@@ -10,4 +10,6 @@ Local evidence: 45 tests passed on Python 3.12, including PyTorch CPU reference-
 
 Docker Engine, CMake/gRPC C++ development libraries, a live inference endpoint and an NVIDIA GPU are not currently available in this environment. Docker/C++/GPU/evaluation integration is therefore unverified. Redis and PostgreSQL are not yet integrated into task dispatch; the runnable gateway uses SQLite and local background tasks. These are explicit upcoming backlog tasks.
 
-The bootstrap commit publishes these verified foundations with Linux/Windows Python CI, a CPU objective check, and a C++ sanitizer build/RPC smoke job. Remote CI status is recorded separately after the workflow runs.
+Bootstrap commit: `9099949ff001dac81184693f7c3ceb6133a4edcf`.
+
+The first GitHub Actions run passed Linux Python checks, the CPU objective checks, and the C++ build with address/undefined-behavior sanitizer instrumentation plus real registration/heartbeat/authentication RPC smoke checks. Windows CI exposed CRLF checkout differences that prevented the LF unified patch from applying. Added an explicit LF checkout policy and made generated Python package files use LF consistently; the follow-up CI run verifies this portability fix.

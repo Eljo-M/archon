@@ -1,0 +1,2 @@
+# Keep textual source and unified patches consistent across Windows/Linux checkouts.
+* text=auto eol=lf
