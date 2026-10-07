@@ -7,7 +7,7 @@ import pytest
 from archon.agents.orchestrator import Orchestrator
 from archon.cli import FixtureModel
 from archon.config import Settings
-from archon.domain import RunStatus
+from archon.domain import Event, RunStatus
 from archon.gateway.server import Gateway
 from archon.generated import archon_pb2 as pb
 from archon.generated import archon_pb2_grpc as rpc
@@ -117,3 +117,23 @@ async def test_shutdown_before_background_job_starts_persists_cancellation(gatew
     value.tasks[run_id].add_done_callback(lambda _: value.tasks.pop(run_id, None))
     await value.close()
     assert (await store.get(run_id))["status"] == RunStatus.CANCELLED
+
+
+async def test_watch_delivers_terminal_event_committed_during_stream_delivery(gateway, store, issue):
+    value, _, _ = gateway
+    run_id, _ = await store.create(issue, "terminal-during-delivery")
+
+    class Context:
+        def invocation_metadata(self):
+            return AUTH
+
+        async def abort(self, code, details):
+            raise AssertionError(details)
+
+    stream = value.WatchRun(pb.WatchRequest(run_id=run_id), Context())
+    first = await anext(stream)
+    assert first.stage == "QUEUED"
+    await store.append(Event(run_id, 0, "SUCCEEDED", "test", "Completed while queued event was delivered",
+                             status=RunStatus.SUCCEEDED))
+    remaining = [event async for event in stream]
+    assert len(remaining) == 1 and remaining[0].success and remaining[0].is_completed

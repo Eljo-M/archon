@@ -1,3 +1,5 @@
+import math
+
 import pytest
 
 from archon.training.grpo import group_advantages, grpo_loss
@@ -35,3 +37,12 @@ def test_reference_objective_passes_double_precision_gradient_check():
     advantages = torch.tensor([1., -1.], dtype=torch.float64)
     mask = torch.tensor([[1., 0.], [1., 1.]], dtype=torch.float64)
     assert torch.autograd.gradcheck(lambda value: grpo_loss(value, old, reference, advantages, mask), (current,))
+
+
+@pytest.mark.parametrize("advantage,ratio", [(1., 1.5), (-1., 0.5)])
+def test_clipped_policy_branch_stops_gradient(advantage, ratio):
+    current = torch.zeros((1, 1), dtype=torch.float64, requires_grad=True)
+    old = torch.full((1, 1), -math.log(ratio), dtype=torch.float64)
+    loss = grpo_loss(current, old, current.detach(), torch.tensor([advantage]), torch.ones((1, 1)), beta=0)
+    loss.backward()
+    assert current.grad.item() == 0

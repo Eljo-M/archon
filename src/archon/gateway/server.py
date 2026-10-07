@@ -99,7 +99,7 @@ class Gateway(rpc.AgentOrchestratorServiceServicer, rpc.ClusterCoordinatorServic
     async def WatchRun(self, request, context):
         await self.authorize(context)
         try:
-            run = await self.store.get(request.run_id)
+            await self.store.get(request.run_id)
             if request.after_sequence < 0:
                 raise ValueError("cursor cannot be negative")
         except KeyError:
@@ -108,14 +108,13 @@ class Gateway(rpc.AgentOrchestratorServiceServicer, rpc.ClusterCoordinatorServic
             await context.abort(grpc.StatusCode.INVALID_ARGUMENT, str(error))
         cursor = request.after_sequence
         while True:
-            events = await self.store.events(request.run_id, cursor)
+            events, status = await self.store.poll(request.run_id, cursor)
             for event in events:
                 cursor = event.sequence
                 yield event_to_proto(event)
                 if event.completed:
                     return
-            run = await self.store.get(request.run_id)
-            if run["status"] in {RunStatus.SUCCEEDED, RunStatus.FAILED, RunStatus.CANCELLED}:
+            if status in {RunStatus.SUCCEEDED, RunStatus.FAILED, RunStatus.CANCELLED}:
                 return
             await asyncio.sleep(0.1)
 

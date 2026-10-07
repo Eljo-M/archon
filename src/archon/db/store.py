@@ -84,6 +84,18 @@ class RunStore:
                                            "ORDER BY sequence", (run_id, after)).fetchall()
             return [Event(**json.loads(row[0])) for row in rows]
 
+    async def poll(self, run_id: str, after: int = 0) -> tuple[list[Event], RunStatus]:
+        """Read events and lifecycle state from one snapshot to avoid missing the terminal event."""
+        if after < 0:
+            raise ValueError("event cursor cannot be negative")
+        async with self.lock:
+            run = self.connection.execute("SELECT status FROM runs WHERE run_id=?", (run_id,)).fetchone()
+            if run is None:
+                raise KeyError(run_id)
+            rows = self.connection.execute("SELECT payload FROM events WHERE run_id=? AND sequence>? "
+                                           "ORDER BY sequence", (run_id, after)).fetchall()
+            return [Event(**json.loads(row[0])) for row in rows], RunStatus(run[0])
+
     async def cancel(self, run_id: str) -> bool:
         async with self.lock:
             row = self.connection.execute("SELECT status FROM runs WHERE run_id=?", (run_id,)).fetchone()
